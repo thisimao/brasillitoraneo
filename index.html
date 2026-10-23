@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Brasil Litorâneo — Quebra-cabeça geográfico</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--navy:#073b4c;--blue:#087e8b;--aqua:#4ecdc4;--sand:#fff8e9;--gold:#ffd166;--coral:#ef8354;--ink:#17383f}
+*{box-sizing:border-box}body{margin:0;background:var(--sand);color:var(--ink);font-family:Inter,system-ui,Arial,sans-serif}
+header{background:var(--navy);color:#fff;padding:18px 5%;display:flex;align-items:center;justify-content:space-between;gap:18px;position:sticky;top:0;z-index:1000}.logo{font-weight:900;letter-spacing:-1px}.logo span{color:var(--gold)}
+nav button,.btn{border:1px solid #ffffff55;background:transparent;color:#fff;padding:10px 15px;border-radius:24px;font-weight:800;cursor:pointer}
+.page{display:none}.page.active{display:block}.intro{max-width:1250px;margin:auto;padding:55px 5% 20px}.eyebrow{font-size:.75rem;letter-spacing:2px;text-transform:uppercase;font-weight:900;color:var(--coral)}h1{font-size:clamp(2.6rem,6vw,5.5rem);line-height:.94;letter-spacing:-4px;color:var(--navy);margin:16px 0}p{line-height:1.65;color:#60777b}
+.layout{max-width:1450px;margin:auto;padding:20px 3% 65px;display:grid;grid-template-columns:minmax(0,1fr) 300px;align-items:start;gap:18px}.map-panel{background:#fff;border-radius:28px;padding:16px;box-shadow:0 15px 50px #073b4c12}.map-panel h2{margin:6px 0}.map-wrap{height:650px;border-radius:20px;overflow:hidden;background:linear-gradient(145deg,#d9f1f1,#b9e4e7)}.map-wrap #map{height:100%;width:100%}
+.side{background:var(--navy);color:#fff;border-radius:28px;padding:24px;height:max-content}.side p{color:#c7e4e3}.pieces{display:grid;grid-template-columns:1fr;gap:8px;margin-top:16px;background:#0b5265;padding:10px;border-radius:16px;max-height:440px;overflow-y:auto;overscroll-behavior:contain}.piece{display:block!important;visibility:visible!important;width:100%;background:var(--gold);border:2px solid transparent;color:var(--navy);border-radius:11px;padding:11px 12px;text-align:left;font-weight:900;font-size:.92rem;line-height:1.25;cursor:grab;box-shadow:0 3px 0 #c69a37;min-height:44px;touch-action:manipulation;user-select:none;-webkit-user-select:none}.piece:focus-visible{outline:3px solid var(--coral);outline-offset:2px}.piece[draggable="true"]:hover{transform:translateY(-1px);box-shadow:0 4px 0 #c69a37}.piece:active{cursor:grabbing}.state-number{background:#073b4c;color:#fff;border:2px solid #ffd166;border-radius:50%;width:27px;height:27px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;box-shadow:0 2px 5px #0005}.leaflet-div-icon{background:transparent;border:0}.piece.done{background:#7fb8a7;color:#123b35;box-shadow:none;cursor:default}.status{min-height:65px;color:var(--gold);font-weight:800;margin-top:14px;font-size:.9rem;line-height:1.45}.side{position:sticky;top:90px;max-height:calc(100vh - 110px);overflow-y:auto}.map-panel{min-width:0}.map-wrap{height:min(650px,calc(100vh - 190px));min-height:460px}.primary{background:var(--gold);color:var(--navy);border:0;border-radius:25px;padding:13px 17px;font-weight:900;cursor:pointer;margin-top:12px;width:100%}
+#litoral{background:linear-gradient(145deg,var(--navy),var(--blue));color:white;min-height:calc(100vh - 70px);padding-bottom:70px}#litoral h1{color:white}#litoral p{color:#d4eeee}.destinos{max-width:1250px;margin:auto;padding:20px 5%;display:grid;grid-template-columns:repeat(3,1fr);gap:18px}.destino{background:#fff;color:var(--ink);border-radius:24px;overflow:hidden}.destino .visual{height:155px;display:flex;align-items:center;justify-content:center;font-size:4.5rem;background:linear-gradient(145deg,#4ecdc4,#087e8b)}.destino:nth-child(2) .visual{background:linear-gradient(145deg,#77c9e8,#1e5b8b)}.destino:nth-child(3) .visual{background:linear-gradient(145deg,#a0d9a1,#176353)}.destino .body{padding:20px}.destino img{width:100%;height:190px;object-fit:cover;display:block}.city-photo{width:100%;max-height:390px;object-fit:cover;border-radius:20px;margin:10px 0 22px}.destino h2{margin:8px 0}.destino button{border:0;background:none;color:var(--blue);font-weight:900;padding:0;cursor:pointer}
+.modal{display:none;position:fixed;inset:0;background:#032832cc;z-index:2000;align-items:center;justify-content:center;padding:20px}.modal.open{display:flex}.modal-card{max-width:720px;max-height:90vh;overflow:auto;background:var(--sand);border-radius:28px;padding:32px;position:relative}.close{position:absolute;right:14px;top:14px;border:0;border-radius:50%;width:34px;height:34px;cursor:pointer}.modal-card h2{font-size:2.3rem;color:var(--navy)}.modal-card h3{color:var(--blue)}
+footer{background:#032832;color:#c7e4e3;padding:30px 5%;display:flex;justify-content:space-between;gap:15px;flex-wrap:wrap}
+@media(max-width:1000px){.layout{grid-template-columns:minmax(0,1fr) 260px;padding-left:2%;padding-right:2%}.side{padding:16px}.map-wrap{height:560px}}@media(max-width:760px){.layout{grid-template-columns:1fr;padding-left:5%;padding-right:5%}.side{position:static;max-height:none;overflow:visible;grid-row:1}.pieces{grid-template-columns:repeat(2,minmax(0,1fr));max-height:320px}.map-wrap{height:500px;min-height:420px}.destinos{grid-template-columns:1fr}h1{letter-spacing:-2px}}
+
+.gallery-dest{margin:26px 0 8px}
+.gallery-dest h3{margin:0 0 12px;color:var(--navy)}
+.photo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.photo-card{margin:0;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,.10)}
+.photo-card img{display:block;width:100%;height:190px;object-fit:cover}
+.photo-card figcaption{padding:9px 11px;font-size:.82rem;font-weight:800;color:var(--ink)}
+.photo-source{margin:8px 0 0!important;font-size:.76rem!important;color:#6d8589!important}
+@media(max-width:650px){.photo-grid{grid-template-columns:1fr}.photo-card img{height:220px}}
+
+.environment{margin-top:24px;padding:18px;border-radius:18px;background:#eef8f5;border-left:6px solid var(--coral)}.environment h3{margin-top:0;color:var(--navy)}
+</style>
+</head>
+<body>
+<header><div class="logo">BRASIL<span>.</span>LITORÂNEO</div><nav><button onclick="showPage('mapa')">Mapa</button><button onclick="showPage('litoral')">Explorar litoral</button></nav></header>
+
+<section id="mapa" class="page active">
+<div class="intro"><div class="eyebrow">Página 01 • Quebra-cabeça geográfico</div><h1>Complete o mapa<br>do Brasil.</h1><p>Complete o mapa do Brasil encaixando os 27 estados. Os nomes ficam embaralhados e as peças já encontradas desaparecem automaticamente.</p></div>
+<div class="layout">
+<div class="map-panel"><h2>Mapa político interativo</h2><p>As áreas tracejadas e coloridas indicam onde cada estado deve ser colocado. Arraste uma peça da lista lateral até o estado correspondente. Se estiver difícil arrastar, clique na peça e depois clique no estado no mapa. O fundo cartográfico foi removido para evitar bloqueios de tiles.</p><div class="map-wrap"><div id="map"></div></div><small>Limites estaduais: base cartográfica pública baseada em dados do IBGE. O mapa não utiliza imagens de tiles do OpenStreetMap.</small></div>
+<aside class="side"><h2>Peças do quebra-cabeça</h2><p>Todos os 27 estados estão no jogo. Os números do mapa correspondem aos números das peças; os nomes aparecem em ordem embaralhada. A lista é rolável e compacta para facilitar encontrar e arrastar cada peça. As peças corretas desaparecem automaticamente. Se arrastar não funcionar, clique na peça e depois no estado no mapa. Estados com páginas de destinos abrem seu conteúdo ao encaixar.</p><div id="pieces" class="pieces"></div><div id="status" class="status">Carregando o mapa…</div><button class="primary" onclick="showPage('litoral')">Ir para a página do litoral →</button></aside>
+</div></section>
+
+<section id="litoral" class="page">
+<div class="intro"><div class="eyebrow" style="color:var(--gold)">Página 02 • Destinos e conservação</div><h1>Conheça o litoral<br>que queremos preservar.</h1><p>Explore os sete destinos selecionados e descubra a relação entre turismo, cultura, biodiversidade e conservação.</p></div>
+<div class="destinos">
+<article class="destino"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Praia%20do%20Forte%20Litoral.JPG" alt="Praia do Forte, Bahia"><div class="body"><div class="eyebrow">Bahia • BA</div><h2>Praia do Forte</h2><p>Projeto Tamar, conservação das tartarugas marinhas, educação ambiental e turismo voltado à preservação.</p><button onclick="openInfo('forte')">Explorar destino →</button></div></article>
+<article class="destino"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Praia%20de%20Noronha.jpg" alt="Fernando de Noronha"><div class="body"><div class="eyebrow">Pernambuco • PE</div><h2>Fernando de Noronha</h2><p>Controle de visitantes, taxa de preservação, proteção da vida marinha e turismo ecológico.</p><button onclick="openInfo('noronha')">Explorar destino →</button></div></article>
+<article class="destino"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Praia%20de%20Bombinhas.jpg" alt="Bombinhas, Santa Catarina"><div class="body"><div class="eyebrow">Santa Catarina • SC</div><h2>Bombinhas</h2><p>Preservação de áreas marinhas, educação ambiental e proteção da biodiversidade.</p><button onclick="openInfo('bombinhas')">Explorar destino →</button></div></article>
+<article class="destino"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Praia%20das%20Toninhas%2C%20Ubatuba%2C%20S%C3%A3o%20Paulo%2C%20Brazil.jpg" alt="Litoral de São Paulo"><div class="body"><div class="eyebrow">São Paulo • SP</div><h2>Ubatuba</h2><p>Preservação da Mata Atlântica, conservação marinha e ecoturismo.</p><button onclick="openInfo('ubatuba')">Explorar destino →</button></div></article>
+<article class="destino"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Litoral%20de%20Paraty.jpg" alt="Paraty, Rio de Janeiro"><div class="body"><div class="eyebrow">Rio de Janeiro • RJ</div><h2>Paraty</h2><p>Turismo cultural e ambiental, áreas protegidas e valorização das comunidades locais.</p><button onclick="openInfo('paraty')">Explorar destino →</button></div></article>
+<article class="destino"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Praia%20da%20Joaquina.IMG.jpg" alt="Florianópolis, Santa Catarina"><div class="body"><div class="eyebrow">Santa Catarina • SC</div><h2>Florianópolis</h2><p>Unidades de conservação, trilhas ecológicas e projetos de preservação das praias.</p><button onclick="openInfo('floripa')">Explorar destino →</button></div></article>
+<article class="destino"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/Atins-maranhao-praia.jpg" alt="Lençóis Maranhenses, Maranhão"><div class="body"><div class="eyebrow">Maranhão • MA</div><h2>Barreirinhas</h2><p>Porta de entrada dos Lençóis Maranhenses, guias credenciados e integração entre turismo e conservação.</p><button onclick="openInfo('barreirinhas')">Explorar destino →</button></div></article>
+</div></section>
+
+<section id="cidade" class="page">
+<div class="intro"><div class="eyebrow">Página 03 • Estado encaixado</div><h1 id="cityTitle">Destino desbloqueado.</h1><p id="cityIntro"></p></div>
+<div class="layout">
+<div class="map-panel"><div id="cityContent"></div><button class="primary" style="background:var(--blue);color:white;width:auto" onclick="showPage('mapa')">← Voltar ao mapa</button><button class="primary" style="width:auto" onclick="showPage('litoral')">Ver todos os destinos →</button></div>
+<aside class="side"><h2>Você conseguiu!</h2><p id="cityMission">O estado foi encaixado corretamente.</p><button class="primary" onclick="showPage('mapa')">Continuar o quebra-cabeça</button></aside>
+</div></section>
+
+<footer><strong>BRASIL.LITORÂNEO</strong><span>Conhecer para preservar.</span></footer>
+
+<div id="modal" class="modal"><div class="modal-card"><button class="close" onclick="closeInfo()">×</button><div id="info"></div></div></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const missing=[
+{uf:'AC',name:'Acre',number:1},
+{uf:'AL',name:'Alagoas',number:2},
+{uf:'AP',name:'Amapá',number:3},
+{uf:'AM',name:'Amazonas',number:4},
+{uf:'BA',name:'Bahia',number:5},
+{uf:'CE',name:'Ceará',number:6},
+{uf:'DF',name:'Distrito Federal',number:7},
+{uf:'ES',name:'Espírito Santo',number:8},
+{uf:'GO',name:'Goiás',number:9},
+{uf:'MA',name:'Maranhão',number:10},
+{uf:'MT',name:'Mato Grosso',number:11},
+{uf:'MS',name:'Mato Grosso do Sul',number:12},
+{uf:'MG',name:'Minas Gerais',number:13},
+{uf:'PR',name:'Paraná',number:14},
+{uf:'PB',name:'Paraíba',number:15},
+{uf:'PA',name:'Pará',number:16},
+{uf:'PE',name:'Pernambuco',number:17},
+{uf:'PI',name:'Piauí',number:18},
+{uf:'RN',name:'Rio Grande do Norte',number:19},
+{uf:'RS',name:'Rio Grande do Sul',number:20},
+{uf:'RJ',name:'Rio de Janeiro',number:21},
+{uf:'RO',name:'Rondônia',number:22},
+{uf:'RR',name:'Roraima',number:23},
+{uf:'SC',name:'Santa Catarina',number:24},
+{uf:'SE',name:'Sergipe',number:25},
+{uf:'SP',name:'São Paulo',number:26},
+{uf:'TO',name:'Tocantins',number:27}
+];
+let map, targetLayers={}, completed=new Set(), geojsonData, selectedPiece=null;
+const mapEl=L.map('map',{zoomControl:true}).setView([-14.2,-51.9],4);
+map=L.map?mapEl:null;
+/* Sem tiles externos: evita bloqueios de uso do OpenStreetMap.
+   O mapa político é desenhado pela camada GeoJSON abaixo. */
+const styleNormal={color:'#ffffff',weight:1,fillColor:'#b8d9c6',fillOpacity:.72};
+const styleMissing={color:'#ef8354',weight:2,dashArray:'7 5',fillColor:'#ffd166',fillOpacity:.16};
+function featureUF(f){return String(f.properties?.sigla||f.properties?.SIGLA||f.properties?.uf||f.properties?.UF||f.properties?.CD_UF||'').toUpperCase()}
+
+const cityByUF={
+BA:{id:'forte',name:'Praia do Forte (BA)',photo:'https://commons.wikimedia.org/wiki/Special:FilePath/Praia%20do%20Forte%20Litoral.JPG',intro:'Praia do Forte combina praias, recifes, biodiversidade e ações de educação ambiental.',highlights:'Projeto Tamar; conservação das tartarugas marinhas; educação ambiental; turismo voltado para a preservação.',care:'Respeitar áreas de desova, não tocar nos animais e seguir as orientações dos monitores.',gallery:[
+['Praia do Forte Litoral','Praia do Forte Litoral.JPG'],['Praia do Forte','Praia do Forte - praia.JPG'],['Praia do Forte Bahia','Praia do Forte Bahia.jpg'],['Corais da Praia do Forte','Corais- Praia do Forte.JPG']]},
+PE:{id:'noronha',name:'Fernando de Noronha (PE)',photo:'https://commons.wikimedia.org/wiki/Special:FilePath/Praia%20de%20Noronha.jpg',intro:'Fernando de Noronha reúne praias, costões e ambientes marinhos de grande importância para a conservação.',highlights:'Controle de visitantes; taxa de preservação ambiental; proteção da vida marinha; turismo ecológico.',care:'Cumprir as regras de visitação, não alimentar a fauna e manter distância segura dos animais.',gallery:[
+['Cacimba do Padre','Praia de Noronha.jpg'],['Cacimba do Padre e Morro Dois Irmãos','Praia paradisíaca em Fernando de Noronha.jpg'],['Praia do Leão','Praia do Leão localizada em Fernando de Noronha.jpg'],['Praia do Sancho','Fernando de Noronha-Praia do Sancho.jpg']]},
+SC:{id:'sc',name:'Santa Catarina: Bombinhas e Florianópolis',photo:'https://commons.wikimedia.org/wiki/Special:FilePath/Praia%20de%20Bombinhas.jpg',intro:'Santa Catarina reúne praias, ilhas, costões, dunas e ambientes marinhos sensíveis.',highlights:'Bombinhas: preservação de áreas marinhas, educação ambiental e biodiversidade. Florianópolis: unidades de conservação, trilhas ecológicas e preservação das praias.',care:'Não pisar em organismos marinhos ou dunas frágeis, seguir trilhas e recolher os resíduos.',gallery:[
+['Praia de Bombinhas','Praia de Bombinhas.jpg'],['Praia de Mariscal','Praia Mariscal Bombinhas.jpg'],['Praia da Sepultura','Praia da Sepultura - Bombinhas, Santa Catarina, Brasil.jpg'],['Praia de Quatro Ilhas','Praia Quatro Ilhas Bombinhas.jpg'],['Praia de Florianópolis','Praia Florianópolis.jpg'],['Praia Mole','Praia Mole em Florianopolis.jpg'],['Praia da Joaquina','Praia da Joaquina.IMG.jpg'],['Praia de Florianópolis','Praia em Florianópolis ggg.JPG']]},
+SP:{id:'ubatuba',name:'Ubatuba (SP)',photo:'https://commons.wikimedia.org/wiki/Special:FilePath/Praia%20das%20Toninhas%2C%20Ubatuba%2C%20S%C3%A3o%20Paulo%2C%20Brazil.jpg',intro:'Ubatuba reúne praias, Mata Atlântica e ambientes marinhos de grande importância ecológica.',highlights:'Preservação da Mata Atlântica; projetos de conservação marinha; ecoturismo.',care:'Usar trilhas oficiais, não retirar plantas e respeitar as áreas protegidas.',gallery:[
+['Praia Grande','Praia Grande Ubatuba 04.jpg'],['Praia das Toninhas','Praia das Toninhas, Ubatuba, São Paulo, Brazil.jpg'],['Praia da Fazenda','Praia da Fazenda, Ubatuba, SP.jpg'],['Praia do Lázaro','Praia Lazaro Ubatuba.jpg']]},
+RJ:{id:'paraty',name:'Paraty (RJ)',photo:'https://commons.wikimedia.org/wiki/Special:FilePath/Litoral%20de%20Paraty.jpg',intro:'Paraty conecta paisagens costeiras, áreas naturais protegidas e comunidades locais.',highlights:'Turismo cultural e ambiental; áreas naturais protegidas; valorização das comunidades locais.',care:'Valorizar guias e negócios locais, respeitar comunidades e reduzir impactos nas trilhas e praias.',gallery:[
+['Litoral de Paraty','Litoral de Paraty.jpg'],['Praia do Sono','Praia do Sono - Paraty.jpeg'],['Praia do Meio, Trindade','Praia-trindade-paraty.jpg'],['Pôr do sol na Praia do Sono','Pôr do sol na Praia do Sono.JPG']]},
+MA:{id:'barreirinhas',name:'Barreirinhas (MA)',photo:'https://commons.wikimedia.org/wiki/Special:FilePath/Atins-maranhao-praia.jpg',intro:'Barreirinhas é uma das principais portas de entrada dos Lençóis Maranhenses e se conecta a paisagens costeiras como Atins.',highlights:'Passeios com guias credenciados; integração entre turismo e conservação ambiental; praias, dunas e lagoas do ambiente costeiro.',care:'Seguir rotas autorizadas, não deixar resíduos e respeitar áreas frágeis de dunas, lagoas e praias.',gallery:[
+['Praia de Atins','Atins-maranhao-praia.jpg'],['Praia de Atins','Atins no Maranhão.jpg'],['Dunas e lagoas de Barreirinhas','Lençois Maranheses (Barreirinhas - Brazil).jpg'],['Lençóis Maranhenses','Lençóis Maranhenses Maranhão.jpg']]}
+};
+function openCityPage(uf){
+ const c=cityByUF[uf]; if(!c)return;
+ document.getElementById('cityTitle').textContent=c.name;
+ document.getElementById('cityIntro').textContent=c.intro;
+ document.getElementById('cityMission').textContent='Você encaixou '+uf+'. Agora explore o destino correspondente.';
+ const gallery=c.gallery.map(p=>'<figure class="photo-card"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/'+encodeURIComponent(p[1])+'" alt="'+p[0]+'"><figcaption>'+p[0]+'</figcaption></figure>').join('');
+ document.getElementById('cityContent').innerHTML='<img class="city-photo" src="'+c.photo+'" alt="'+c.name+'"><h2>O que torna este lugar especial?</h2><p>'+c.intro+'</p><h3>Principais destaques</h3><p>'+c.highlights+'</p><div class="gallery-dest"><h3>Fotos do litoral e dos ambientes costeiros</h3><div class="photo-grid">'+gallery+'</div><p class="photo-source">Fotos: Wikimedia Commons. Consulte a página de cada imagem para autoria e licença antes de publicar o projeto.</p></div><div class="environment"><h3>Problemas e desafios ambientais</h3><p>'+({BA:'Pressão turística e ocupação costeira, resíduos e necessidade de proteger áreas de reprodução de tartarugas.',PE:'Gestão da visitação, resíduos, água e proteção de habitats marinhos sensíveis.',SC:'Pressão da temporada turística, resíduos, ocupação costeira e impactos sobre praias, dunas e ambientes marinhos.',SP:'Pressão urbana, saneamento, resíduos, erosão costeira e impactos do turismo em áreas naturais.',RJ:'Pressão turística e urbana, resíduos, saneamento e impactos sobre áreas naturais e comunidades locais.',MA:'Fragilidade de dunas, lagoas e praias, circulação turística, resíduos e necessidade de manejo responsável da visitação.'}[uf]||'Conservação da biodiversidade, manejo da visitação e redução de resíduos são desafios importantes.')+'</p></div><h3>Turismo responsável</h3><p>'+c.care+'</p>';
+ showPage('cidade');
+}
+
+function renderPieces(){
+ const el=document.getElementById('pieces');
+ const order=[...missing];
+ for(let i=order.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]];}
+ el.innerHTML='';
+ if(order.every(s=>completed.has(s.uf))){el.innerHTML='<p style="color:#fff;grid-column:1/-1;margin:8px">Parabéns! Você encaixou todos os estados.</p>';return;}
+ order.filter(s=>!completed.has(s.uf)).forEach(s=>{
+   const b=document.createElement('button');
+   b.className='piece'; b.dataset.uf=s.uf; b.draggable=true;
+   b.textContent=s.name+' ('+s.uf+')';
+   el.appendChild(b);
+ });
+ el.querySelectorAll('.piece').forEach(b=>{
+   const uf=b.dataset.uf, s=missing.find(x=>x.uf===uf);
+   b.textContent=s.name+' ('+uf+')'+(completed.has(uf)?' ✓':'');
+   b.classList.toggle('done',completed.has(uf)); b.draggable=!completed.has(uf);
+   b.onclick=()=>selectPiece(uf);
+   b.ondragstart=e=>{selectedPiece=uf;e.dataTransfer.setData('text/plain',uf);};
+   b.ondragend=()=>{if(!completed.has(uf)) selectedPiece=null;};
+ });
+}
+renderPieces();
+fetch('https://raw.githubusercontent.com/giuliano-macedo/geodata-br-states/master/geojson/br_states.json')
+.then(r=>{if(!r.ok)throw new Error('GeoJSON indisponível');return r.json()})
+.then(data=>{
+ geojsonData=data;
+ L.geoJSON(data,{style:f=>missing.some(s=>s.uf===featureUF(f))?styleMissing:styleNormal,onEachFeature:(f,l)=>{
+   const uf=featureUF(f);
+   if(missing.some(s=>s.uf===uf)){
+     targetLayers[uf]=l;
+     const state=missing.find(s=>s.uf===uf);
+     l.bindTooltip(state.number+'. '+state.name+' ('+uf+')',{sticky:true});
+     const center=l.getBounds().getCenter();
+     L.marker(center,{icon:L.divIcon({className:'',html:'<span class="state-number">'+state.number+'</span>',iconSize:[27,27],iconAnchor:[13,13]}),interactive:false}).addTo(mapEl);
+     l.on('click',()=>{if(selectedPiece) checkPlacement(selectedPiece,uf);});
+   }
+ }}).addTo(mapEl);
+ setTimeout(enableMapDropTargets,250);
+ document.getElementById('status').textContent='Mapa carregado. Arraste uma peça da lista lateral para o estado correspondente. Alternativa fácil: clique na peça e depois no estado.';
+})
+.catch(err=>{
+ document.getElementById('status').textContent='Não foi possível carregar os limites estaduais. Verifique a conexão e recarregue a página.';
+ console.error(err);
+});
+function selectPiece(uf){
+ if(completed.has(uf)) return;
+ selectedPiece=uf;
+ document.querySelectorAll('.piece').forEach(b=>b.style.outline=b.dataset.uf===uf?'4px solid var(--coral)':'none');
+ const item=missing.find(x=>x.uf===uf);
+ document.getElementById('status').textContent='Peça selecionada: '+item.name+' ('+uf+'). Agora clique no estado correspondente.';
+}
+function clearSelection(){
+ selectedPiece=null;
+ document.querySelectorAll('.piece').forEach(b=>b.style.outline='none');
+}
+function checkPlacement(pieceUF,targetUF){
+ if(!pieceUF||completed.has(pieceUF)) return;
+ const status=document.getElementById('status');
+ if(pieceUF!==targetUF){
+   status.textContent='Ainda não! A peça de '+pieceUF+' não pertence a este estado. Tente novamente.';
+   status.style.color='var(--coral)';
+   setTimeout(()=>{status.style.color='var(--gold)';},1200);
+   clearSelection();
+   return;
+ }
+ completed.add(pieceUF);
+ const layer=targetLayers[targetUF];
+ if(layer) layer.setStyle({color:'#176353',weight:3,fillColor:'#7fb8a7',fillOpacity:.82,dashArray:null});
+ renderPieces();
+ clearSelection();
+ if(cityByUF[targetUF]){
+   status.textContent='Correto! Estado '+missing.find(s=>s.uf===targetUF).number+' encaixado. Abrindo a página de '+cityByUF[targetUF].name+'…';
+   setTimeout(()=>openCityPage(targetUF),650);
+ }else{
+   status.textContent='Correto! '+missing.find(s=>s.uf===targetUF).name+' encaixado. Este estado não possui página de destino litorâneo.';
+ }
+}
+function enableMapDropTargets(){
+ Object.entries(targetLayers).forEach(([uf,layer])=>{
+   const el=layer.getElement();
+   if(!el || el.dataset.dropReady) return;
+   el.dataset.dropReady='1';
+   el.addEventListener('dragover',e=>{e.preventDefault();el.style.cursor='copy';});
+   el.addEventListener('dragleave',()=>{el.style.cursor='';});
+   el.addEventListener('drop',e=>{
+     e.preventDefault();
+     el.style.cursor='';
+     checkPlacement(e.dataTransfer.getData('text/plain')||selectedPiece,uf);
+   });
+ });
+}
+function showPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);if(id==='mapa')setTimeout(()=>mapEl.invalidateSize(),100)}
+const infos={
+forte:['Praia do Forte (BA)','O Projeto Tamar atua na conservação das tartarugas marinhas e na sensibilização de visitantes e comunidades.','Destaques','Monitoramento e proteção de ninhos; educação ambiental; turismo associado à preservação.','Cuidados','Respeitar áreas sinalizadas, não tocar nos animais e evitar iluminação ou ruídos próximos aos ninhos.'],
+noronha:['Fernando de Noronha (PE)','O arquipélago é conhecido pela biodiversidade marinha e por regras específicas de visitação.','Destaques','Controle de visitantes; taxas de preservação; proteção da vida marinha; turismo ecológico.','Cuidados','Cumprir regras de acesso, não alimentar animais e manter distância segura da fauna.'],
+bombinhas:['Bombinhas (SC)','A região combina praias, costões e ambientes marinhos sensíveis, exigindo atenção à conservação.','Destaques','Preservação de áreas marinhas; educação ambiental; proteção da biodiversidade.','Cuidados','Não pisar em organismos marinhos, recolher resíduos e seguir orientações das áreas protegidas.'],
+ubatuba:['Ubatuba (SP)','Ubatuba reúne Mata Atlântica, praias e áreas marinhas de grande importância ecológica.','Destaques','Preservação da Mata Atlântica; projetos de conservação marinha; ecoturismo.','Cuidados','Usar trilhas oficiais, evitar retirar plantas e respeitar áreas de proteção integral.'],
+paraty:['Paraty (RJ)','Paraty integra patrimônio cultural, paisagens costeiras e áreas naturais protegidas.','Destaques','Turismo cultural e ambiental; áreas protegidas; valorização das comunidades locais.','Cuidados','Valorizar guias e negócios locais, respeitar comunidades e reduzir impactos em trilhas e praias.'],
+floripa:['Florianópolis (SC)','A capital catarinense reúne ilhas, dunas, lagoas, trilhas e diferentes unidades de conservação.','Destaques','Unidades de conservação; trilhas ecológicas; projetos de preservação das praias.','Cuidados','Não circular sobre dunas frágeis, seguir trilhas e manter a praia livre de resíduos.'],
+barreirinhas:['Barreirinhas (MA)','Barreirinhas é uma das principais portas de entrada dos Lençóis Maranhenses.','Destaques','Passeios com guias credenciados; integração entre turismo e conservação ambiental.','Cuidados','Seguir rotas autorizadas, não deixar resíduos e respeitar áreas frágeis de dunas e lagoas.']
+};
+function openInfo(id){
+ const x=infos[id];
+ const c=Object.values(cityByUF).find(v=>v.id===id || v.name.toLowerCase().includes((x[0]||'').split(' (')[0].toLowerCase()));
+ const gallery=c?c.gallery.map(p=>'<figure class="photo-card"><img src="https://commons.wikimedia.org/wiki/Special:FilePath/'+encodeURIComponent(p[1])+'" alt="'+p[0]+'"><figcaption>'+p[0]+'</figcaption></figure>').join(''):'';
+ document.getElementById('info').innerHTML='<div class="eyebrow">Destino brasileiro</div><h2>'+x[0]+'</h2><p>'+x[1]+'</p><h3>'+x[2]+'</h3><p>'+x[3]+'</p><h3>'+x[4]+'</h3><p>'+x[5]+'</p>'+(gallery?'<div class="gallery-dest"><h3>Fotos do litoral</h3><div class="photo-grid">'+gallery+'</div></div>':'');
+ document.getElementById('modal').classList.add('open')
+}
+function closeInfo(){document.getElementById('modal').classList.remove('open')}
+</script>
+</body>
+</html>

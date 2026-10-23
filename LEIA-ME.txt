@@ -1,0 +1,14 @@
+BRASIL LITORÂNEO — versão com galeria costeira
+
+Alterações:
+- As fotos foram trocadas por imagens de praias, mar, costões, dunas e lagoas de ambientes costeiros.
+- Removida a foto de igreja de Paraty.
+- Corrigida a foto de Barreirinhas que não carregava.
+- Cada página de destino ganhou uma galeria com várias fotos.
+- Santa Catarina ganhou fotos de Bombinhas e Florianópolis.
+- O conteúdo continua com informações ambientais e turismo responsável.
+- As imagens são carregadas do Wikimedia Commons por Special:FilePath.
+
+Atenção: antes de publicar o projeto fora do ambiente escolar, confira a autoria e a licença de cada imagem na página correspondente do Wikimedia Commons.
+
+- Ajuste desta versão: os números foram removidos dos botões/peças do menu lateral para não revelar a resposta; a numeração no mapa foi mantida.
